@@ -1,0 +1,7 @@
+Operating State,Power_kW,Primary Intent
+Nominal 6 crew,12.50,Full occupied operations
+Handover 12 crew,17.50,Highest routine occupancy
+Crewed survival,8.65,Full critical habitat systems retained
+Emergency refuge,5.25,Smallest protected livable volume
+Uncrewed survival,2.40,Preserve infrastructure and telemetry
+Deep hibernation,1.10,Minimum extended-outage state
