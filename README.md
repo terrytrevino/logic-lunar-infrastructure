@@ -12,6 +12,6 @@ The site now includes explicit operating-state power logic, Utility Node warm-co
 - `data/model_summary.json`
 
 ## Current workbook
-The repository currently retains `LOGIC_Lunar_Surface_Power_Dashboard_v3.xlsx`. The revised master workbook is `LOGIC_Lunar_Surface_Power_Dashboard_v5_Rescue_Modes.xlsx` and should replace/add the older workbook when uploaded.
+The repository currently retains `LOGIC_Lunar_Surface_Power_Dashboard_v5.xlsx`. The revised master workbook is `LOGIC_Lunar_Surface_Power_Dashboard_v5_Rescue_Modes.xlsx` and should replace/add the older workbook when uploaded.
 
 GitHub Pages deploys from `main` / repository root.
