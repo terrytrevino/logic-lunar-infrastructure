@@ -1,0 +1,17 @@
+{
+  "version": "v5 Rescue Modes",
+  "crew_nominal": 6,
+  "crew_handover": 12,
+  "nominal_load_kw": 12.5,
+  "handover_load_kw": 17.5,
+  "crewed_survival_kw": 8.65,
+  "emergency_refuge_kw": 5.25,
+  "uncrewed_survival_kw": 2.4,
+  "deep_hibernation_kw": 1.1,
+  "utility_node_warm_core_kw": 0.75,
+  "battery_only_refuge_hours": 24,
+  "safe_haven_target_hours": 168,
+  "six_crew_installed_battery_kwh": 157.5,
+  "six_crew_required_surviving_generation_kw": 4.5,
+  "note": "LOGIC engineering assumptions; see workbook and manuscript for provenance and caveats."
+}
