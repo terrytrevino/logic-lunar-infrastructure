@@ -1,0 +1,5 @@
+Case,Crew,Mode_Load_kW,Installed_Battery_kWh,Usable_Fraction,Battery_Only_Hours,Safe_Haven_Target_Hours,Required_Avg_Surviving_Generation_kW
+Nominal crew refuge,6,5.25,157.5,0.80,24,168,4.5
+Handover crew refuge,12,6.75,202.5,0.80,24,168,5.7857142857
+Nominal crew full critical,6,8.65,129.75,0.80,12,72,7.2083333333
+Nominal crew hibernation-like refuge,6,4.50,157.5,0.80,28,168,3.75
