@@ -21,7 +21,7 @@
         <a href="#system">System</a>
         <a href="#transferable">Transferable</a>
         <a href="#buildout">Buildout</a>
-        <a href="#drilldown">Interactive</a>
+        <a href="#drilldown">Interactive</a>\n        <a href="#survival">Survival</a>
         <a href="#model">Model</a>
         <a href="#graphics">Graphics</a>
         <a href="#downloads">Downloads</a>
@@ -36,7 +36,7 @@
           <p class="eyebrow">LOGIC • MODULAR INFRASTRUCTURE • ARCTIC PALETTE</p>
           <h1>Infrastructure we can take anywhere.</h1>
           <p class="lead">
-            A modular utility architecture for the lunar south pole: generation, storage, conversion, distribution, charging, service, and growth built node by node.
+            A modular utility architecture for the lunar south pole: generation, storage, conversion, distribution, charging, service, survival, rescue, and growth built node by node.
           </p>
           <p class="sublead">
             The architecture is intentionally transferable to other remote, logistics-constrained environments.
@@ -253,10 +253,10 @@
             <h3>Utility Node 01 — Seed / Core</h3>
             <p>Establishes the first autonomous electrical utility capability before the settlement becomes crew-dependent.</p>
             <div class="detail-grid">
-              <div><span>Battery</span><strong>50–150 kWh class</strong></div>
+              <div><span>Battery baseline</span><strong>157.5 kWh refuge case</strong></div>
               <div><span>Local bus</span><strong>120 VDC</strong></div>
               <div><span>Conversion</span><strong>Isolated DC/DC</strong></div>
-              <div><span>Controls</span><strong>Autonomous EMS + telemetry</strong></div>
+              <div><span>Warm core</span><strong>0.75 kW survival baseline</strong></div>
             </div>
           </article>
 
@@ -324,6 +324,39 @@
     </section>
 
     
+
+    <section class="section survival-section" id="survival">
+      <div class="wrap">
+        <div class="section-head light">
+          <p class="eyebrow">SURVIVAL / RESCUE CONOPS</p>
+          <h2>The grid has operating states, not just crew counts.</h2>
+          <p>The architecture separates nominal operations from crewed survival, emergency refuge, uncrewed survival, and deep hibernation. Battery capacity guarantees the first refuge bridge; longer rescue endurance requires at least one independent surviving generation path.</p>
+        </div>
+        <div class="survival-kpis">
+          <div><span>Battery-only refuge</span><strong>24 h</strong><small>6 crew, zero generation</small></div>
+          <div><span>Safe-haven target</span><strong>168 h</strong><small>7 days minimum</small></div>
+          <div><span>6-crew refuge load</span><strong>5.25 kW</strong><small>reduced protected volume</small></div>
+          <div><span>Installed battery</span><strong>157.5 kWh</strong><small>80% usable fraction</small></div>
+          <div><span>Generation needed</span><strong>4.5 kW</strong><small>average to sustain 7 days</small></div>
+          <div><span>Warm-core load</span><strong>0.75 kW</strong><small>battery + controls + telemetry</small></div>
+        </div>
+        <div class="mode-table-wrap"><table class="mode-table"><thead><tr><th>Operating state</th><th>Power</th><th>Primary intent</th></tr></thead><tbody>
+          <tr><td>Nominal 6 crew</td><td>12.50 kW</td><td>Full occupied operations</td></tr>
+          <tr><td>Handover 12 crew</td><td>17.50 kW</td><td>Highest routine occupancy</td></tr>
+          <tr><td>Crewed survival</td><td>8.65 kW</td><td>Full critical habitat systems retained</td></tr>
+          <tr class="highlight"><td>Emergency refuge</td><td>5.25 kW</td><td>Smallest protected livable volume</td></tr>
+          <tr><td>Uncrewed survival</td><td>2.40 kW</td><td>Preserve infrastructure and telemetry</td></tr>
+          <tr><td>Deep hibernation</td><td>1.10 kW</td><td>Minimum extended-outage state</td></tr>
+        </tbody></table></div>
+        <div class="survival-grid">
+          <article><p class="panel-kicker">HUMAN WARM CORE</p><h3>Emergency refuge</h3><p>Concentrate the crew in the smallest protected volume. Maintain reduced ECLSS, thermal control, command, communications, medical support, minimum lighting, and water access. Shed plant lighting, science, ISRU, routine charging, galley, and discretionary loads.</p></article>
+          <article><p class="panel-kicker">ELECTRICAL WARM CORE</p><h3>Utility Node survival</h3><p>Maintain battery, BMS, EMS, telemetry, network electronics, critical switchgear, and survival thermal conditioning. During normal operation, recover useful converter/PMAD heat before rejecting the remainder to the radiator.</p></article>
+          <article><p class="panel-kicker">SURFACE HMI</p><h3>No conventional LCD dependency</h3><p>Exterior nodes use hardened indicators, protected controls, and service interfaces. Detailed diagnostics are presented remotely on a rover, habitat workstation, or connected service device.</p></article>
+        </div>
+        <div class="rescue-note"><strong>Planning rule:</strong> the 24-hour battery case is a guaranteed bridge, not a predicted rescue time. The 7-day safe-haven target assumes surviving generation plus storage and is a LOGIC engineering requirement, not a NASA rescue-arrival commitment.</div>
+      </div>
+    </section>
+
     <section class="section map-block" id="graphics">
       <div class="wrap">
         <div class="section-head light">
