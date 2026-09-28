@@ -1,24 +1,46 @@
-# LOGIC Infrastructure Architecture Website v3
+# LOGIC Lunar Infrastructure Architecture
 
-Static site package for the improved Arctic-themed LOGIC infrastructure website.
+Live site: https://terrytrevino.github.io/logic-lunar-infrastructure/
 
-## Included
-- `index.html`
-- `style.css`
-- `LOGIC_Lunar_Surface_Power_Dashboard_v3.xlsx`
-- `lunar_south_pole_settlement_microgrid.png`
-- `lunar_south_pole_settlement_map.png`
+This repository contains the current LOGIC lunar-surface infrastructure briefing site and its supporting engineering model.
 
-## Theme
-This version uses an Arctic-inspired visual language while keeping the project grounded in lunar infrastructure.
-The content explicitly frames the work as transferable infrastructure logic that can apply to other remote environments.
+## Current site
 
-## Publish
-1. Upload all files in this folder to a GitHub repository root.
-2. Open **Settings → Pages**.
-3. Choose **Deploy from a branch**.
-4. Select `main` and `/ (root)`.
-5. Save and wait for the site URL.
+The site presents a modular lunar microgrid architecture built around:
 
-## Notes
-This version uses local image assets bundled in the package, so it is more portable than the prior web-referenced draft.
+- distributed generation and storage
+- three baseline utility nodes
+- high-voltage trunk distribution
+- isolated DC/DC conversion and local 120 VDC service
+- rover charging and service infrastructure
+- hardened utility umbilicals
+- plant-module expansion
+- future firm-power integration
+- cargo-limited settlement growth
+- technology gaps and development priorities
+
+## Engineering drawings
+
+The current site uses technical drawings as the primary visual language:
+
+- `settlement_blueprint.png`
+- `utility_node_cutaway.png`
+- `rover_service_blueprint.png`
+- `habitat_blueprint.png`
+
+The cinematic settlement rendering is retained for environmental context.
+
+## Engineering model
+
+`LOGIC_Lunar_Surface_Power_Dashboard_v3.xlsx`
+
+The workbook includes facilities and loads, NASA-aligned timing, mission buildout, microgrid nodes, distribution, storage, charging, solar concentrators, supply forecast, technology gaps, development tasks, and the power-conversion layer.
+
+## Deployment
+
+GitHub Pages deploys from:
+
+- branch: `main`
+- folder: `/(root)`
+
+The root-level `index.html` is the production homepage.
