@@ -1,0 +1,21 @@
+{
+  "model_version": "v6.1 WIP",
+  "model_status": "work in progress",
+  "source_workbook": "LOGIC_Lunar_Surface_Power_Dashboard_v6_1_WIP.xlsx",
+  "export_date": "2026-09-28",
+  "published_files": [
+    "data/operating_modes.csv",
+    "data/rescue_endurance.csv",
+    "data/model_summary.json"
+  ],
+  "verification": "Operating-mode totals and rescue-endurance values were reconciled to the source workbook after the v6.1 non-material audit correction.",
+  "unchanged_baselines": {
+    "nominal_load_kw": 12.5,
+    "handover_load_kw": 17.5,
+    "nominal_daily_energy_kwh": 300,
+    "handover_daily_energy_kwh": 420,
+    "battery_only_refuge_hours": 24,
+    "safe_haven_target_hours": 168
+  },
+  "limitations": "Electrical allocations and architecture assumptions remain preliminary pending hardware, thermal, illumination, site, and mission validation."
+}
