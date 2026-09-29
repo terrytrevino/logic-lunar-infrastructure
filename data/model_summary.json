@@ -1,5 +1,8 @@
 {
-  "version": "v5 Rescue Modes",
+  "version": "v6.1 WIP",
+  "model_status": "work in progress",
+  "source_workbook": "LOGIC_Lunar_Surface_Power_Dashboard_v6_1_WIP.xlsx",
+  "export_date": "2026-09-28",
   "crew_nominal": 6,
   "crew_handover": 12,
   "nominal_load_kw": 12.5,
@@ -12,6 +15,9 @@
   "battery_only_refuge_hours": 24,
   "safe_haven_target_hours": 168,
   "six_crew_installed_battery_kwh": 157.5,
+  "handover_installed_battery_kwh": 202.5,
+  "six_crew_full_critical_battery_kwh": 129.75,
+  "handover_full_critical_battery_kwh": 170.25,
   "six_crew_required_surviving_generation_kw": 4.5,
-  "note": "LOGIC engineering assumptions; see workbook and manuscript for provenance and caveats."
+  "note": "Version 6.1 contains non-material audit corrections. LOGIC engineering assumptions remain work in progress; see workbook and manuscript for provenance and caveats."
 }
