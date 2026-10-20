@@ -1,0 +1,157 @@
+{
+  "model_version": "v6.2 WIP",
+  "audit_date": "2026-10-20",
+  "note": "Publicly accessible sources prioritized. Revision C is the general architecture baseline; Revision B is retained only where specifically cited.",
+  "sources": [
+    {
+      "id": "moonbase-phases",
+      "title": "NASA Moonbase Phases",
+      "organization": "NASA",
+      "date": "2026",
+      "url": "https://www.nasa.gov/moonbase-phases/",
+      "used_for": "Incremental lunar surface buildout and capability growth",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "moonbase-systems",
+      "title": "NASA Moonbase Systems",
+      "organization": "NASA",
+      "date": "2026",
+      "url": "https://www.nasa.gov/moonbase-systems/",
+      "used_for": "Functional systems and surface-infrastructure context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "power",
+      "title": "NASA Power",
+      "organization": "NASA",
+      "date": "2026",
+      "url": "https://www.nasa.gov/power/",
+      "used_for": "Lunar power technology portfolio and surface applications",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "fsp",
+      "title": "Fission Surface Power",
+      "organization": "NASA",
+      "date": "2026",
+      "url": "https://www.nasa.gov/exploration-systems-development-mission-directorate/fission-surface-power/",
+      "used_for": "40-kW-class system objective and early-2030s development context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "reactor-2030",
+      "title": "NASA and DOE to Develop Lunar Surface Reactor by 2030",
+      "organization": "NASA / U.S. Department of Energy",
+      "date": "2026",
+      "url": "https://www.nasa.gov/news-release/nasa-department-of-energy-to-develop-lunar-surface-reactor-by-2030/",
+      "used_for": "Policy schedule target, distinct from capacity reference",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "add-rev-c",
+      "title": "Moon to Mars Architecture Definition Document, Revision C",
+      "organization": "NASA",
+      "date": "2025",
+      "url": "https://ntrs.nasa.gov/citations/20250010956",
+      "used_for": "Current architecture baseline",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "add-rev-b",
+      "title": "Moon to Mars Architecture Definition Document, Revision B",
+      "organization": "NASA",
+      "date": "2024",
+      "url": "https://www.nasa.gov/wp-content/uploads/2024/12/esdmd-001-add-rev-b.pdf",
+      "used_for": "Specific contingency and safe-haven terminology only",
+      "status": "superseded for general baseline",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "moon-base-guide",
+      "title": "Moon Base User’s Guide",
+      "organization": "NASA",
+      "date": "2024",
+      "url": "https://ntrs.nasa.gov/citations/20240013588",
+      "used_for": "Mission and infrastructure interface reference",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "cargo",
+      "title": "Lunar Surface Cargo",
+      "organization": "NASA",
+      "date": "2024",
+      "url": "https://www.nasa.gov/wp-content/uploads/2024/06/acr24-lunar-surface-cargo.pdf",
+      "used_for": "Cargo delivery and surface-logistics context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "lunar-tech",
+      "title": "Lunar Surface Technology",
+      "organization": "NASA",
+      "date": "2026",
+      "url": "https://www.nasa.gov/lunar-surface-technology/",
+      "used_for": "Technology-development context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "environment",
+      "title": "Moonbase Environment",
+      "organization": "NASA",
+      "date": "2026",
+      "url": "https://www.nasa.gov/reference/moonbase-environment/",
+      "used_for": "Lunar environmental context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "scan",
+      "title": "Cislunar Industry Demand Signal",
+      "organization": "NASA SCaN",
+      "date": "2026",
+      "url": "https://www.nasa.gov/wp-content/uploads/2026/08/scan-cislunar-industry-demand-signal.pdf",
+      "used_for": "C&PNT and observability requirements context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "geotech",
+      "title": "Lunar Geotechnical Engineering Guide",
+      "organization": "NASA",
+      "date": "2022",
+      "url": "https://ntrs.nasa.gov/citations/20220014634",
+      "used_for": "Regolith, site preparation, foundations, and construction basis",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "construction",
+      "title": "NASA Enables Construction Technology for Moon and Mars Exploration",
+      "organization": "NASA STMD",
+      "date": "2026",
+      "url": "https://www.nasa.gov/directorates/stmd/nasa-enables-construction-technology-for-moon-and-mars-exploration/",
+      "used_for": "Autonomous construction and in-situ materials context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    },
+    {
+      "id": "plants",
+      "title": "Plant production system reference",
+      "organization": "Springer",
+      "date": "2026",
+      "url": "https://doi.org/10.1007/s12217-026-10277-w",
+      "used_for": "Plant-production demand and systems context",
+      "status": "current",
+      "last_audited": "2026-10-20"
+    }
+  ]
+}

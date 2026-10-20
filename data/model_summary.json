@@ -1,8 +1,8 @@
 {
-  "version": "v6.1 WIP",
+  "version": "v6.2 WIP",
   "model_status": "work in progress",
-  "source_workbook": "LOGIC_Lunar_Surface_Power_Dashboard_v6_1_WIP.xlsx",
-  "export_date": "2026-09-28",
+  "source_workbook": "Space4All_Lunar_Surface_Power_Dashboard_v6_2_WIP.xlsx",
+  "export_date": "2026-10-20",
   "crew_nominal": 6,
   "crew_handover": 12,
   "nominal_load_kw": 12.5,
@@ -19,5 +19,5 @@
   "six_crew_full_critical_battery_kwh": 129.75,
   "handover_full_critical_battery_kwh": 170.25,
   "six_crew_required_surviving_generation_kw": 4.5,
-  "note": "Version 6.1 contains non-material audit corrections. LOGIC engineering assumptions remain work in progress; see workbook and manuscript for provenance and caveats."
+  "note": "Version 6.2 completes a public-source and terminology audit without changing model formulas or numerical baselines. Space 4 All engineering allocations remain work in progress; see the workbook and references register for provenance and caveats."
 }
