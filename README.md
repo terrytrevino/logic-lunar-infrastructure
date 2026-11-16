@@ -21,6 +21,16 @@ Version 6.2 includes:
 
 The occupied-load baselines, operating-mode totals, battery bridge, safe-haven target, and architecture conclusions are unchanged from v6.1. The v6.2 work focuses on source quality, public usability, and clear separation between NASA source statements and Space 4 All engineering allocations.
 
+## November 16, 2026 website update
+
+The briefing layer now separates LunaGrid-Lite technology validation from settlement power supply:
+
+- Griffin-1 is shown with a January 2027 launch and the 2U BEACON CubeRover, not LunaGrid-Lite.
+- LunaGrid-Lite remains TRL 4 with a 1 kW, 100–500 m public demonstration baseline and no confirmed carrier or date.
+- The site compares the 1 kW demonstration point with the 12.5 kW nominal, 17.5 kW handover, and 5.25 kW refuge loads.
+- LunaGrid-Lite receives 0 kW of dependable generation credit because it transfers lander-supplied power and has no confirmed duty cycle.
+- The v6.2 workbook formulas and occupied-load baselines are unchanged.
+
 ## Next engineering pass
 
 The remaining major analyses are:
