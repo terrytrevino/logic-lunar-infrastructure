@@ -20,6 +20,7 @@
         <a href="#system">System</a>
         <a href="#transferable">Transferable</a>
         <a href="#buildout">Buildout</a>
+        <a href="#validation">Flight validation</a>
         <a href="#drilldown">Interactive</a>
         <a href="#survival">Survival</a>
         <a href="#model">Model</a>
@@ -200,7 +201,7 @@
       <div class="timeline">
         <div class="time-item">
           <div class="time-tag">Install 1</div>
-          <div class="time-body"><strong>Node 01 + initial generation + battery</strong><p>Establish the first autonomous utility capability and begin collecting real surface operations data.</p></div>
+          <div class="time-body"><strong>Node 01 + independent generation + battery</strong><p>Establish the first autonomous utility capability and begin collecting real surface operations data. LunaGrid-Lite is not credited as a supply source.</p></div>
         </div>
         <div class="time-item">
           <div class="time-tag">Install 2</div>
@@ -217,6 +218,67 @@
       </div>
     </section>
 
+    <section class="section cold" id="validation">
+      <div class="wrap">
+        <div class="section-head light">
+          <p class="eyebrow">FLIGHT VALIDATION CONTEXT • UPDATED NOVEMBER 16, 2026</p>
+          <h2>LunaGrid-Lite retires transfer risk. It does not close the settlement power balance.</h2>
+          <p>
+            The 1 kW LunaGrid-Lite rating is a cable-and-converter demonstration point, not a generation commitment.
+            Until a carrier, landing date, operating duration, and usable duty cycle are confirmed, the LOGIC model assigns it
+            <strong>0 kW of dependable generation credit</strong>.
+          </p>
+        </div>
+
+        <div class="cards three">
+          <article class="card ice">
+            <h3>Flight reality</h3>
+            <p class="card-sub">Griffin-1 • January 2027</p>
+            <ul>
+              <li>Carries the 2U BEACON CubeRover</li>
+              <li>BEACON is not LunaGrid-Lite</li>
+              <li>No cable-deployment power payload is listed</li>
+              <li>LunaGrid-Lite carrier and date remain unconfirmed</li>
+            </ul>
+          </article>
+          <article class="card ice">
+            <h3>LunaGrid-Lite baseline</h3>
+            <p class="card-sub">TRL 4 • 1 kW transfer demonstration</p>
+            <ul>
+              <li>Latest Astrobotic configuration: 4U CubeRover</li>
+              <li>500 m flight cable target</li>
+              <li>NASA public range: 100–500 m</li>
+              <li>Historical 2026 flight target has been missed</li>
+            </ul>
+          </article>
+          <article class="card ice">
+            <h3>LOGIC treatment</h3>
+            <p class="card-sub">Technology evidence, not supplied capacity</p>
+            <ul>
+              <li>Validates high-voltage conversion</li>
+              <li>Validates robotic cable deployment</li>
+              <li>Informs feeder loss and regolith interaction</li>
+              <li>Does not replace Node 01 generation or storage</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="mode-table-wrap">
+          <table class="mode-table">
+            <thead><tr><th>LOGIC operating case</th><th>Modeled demand</th><th>1 kW scale comparison</th><th>Credited supply</th></tr></thead>
+            <tbody>
+              <tr><td>Nominal 6 crew</td><td>12.50 kW</td><td>8.0% of demand</td><td>0 kW</td></tr>
+              <tr><td>Handover 12 crew</td><td>17.50 kW</td><td>5.7% of demand</td><td>0 kW</td></tr>
+              <tr><td>Emergency refuge</td><td>5.25 kW</td><td>19.0% of demand</td><td>0 kW</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="reference-note">
+          <strong>Interpretation:</strong> the percentages show scale only. LunaGrid-Lite transfers power supplied by a lander;
+          it does not create power, establish a continuous service rating, or demonstrate lunar-night availability.
+        </p>
+      </div>
+    </section>
 
     <section class="section wrap" id="drilldown">
       <div class="section-head">
@@ -562,7 +624,7 @@
         </div>
 
         <div class="reference-note">
-          <p><strong>Audit date:</strong> October 20, 2026. Model allocations remain preliminary until validated against selected hardware, site, illumination, thermal, and mission inputs.</p>
+          <p><strong>Audit date:</strong> November 16, 2026. Model allocations remain preliminary until validated against selected hardware, site, illumination, thermal, and mission inputs.</p>
           <a class="text-link" href="data/references.json">Open the machine-readable source register →</a>
         </div>
       </div>
