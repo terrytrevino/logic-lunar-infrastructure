@@ -1,6 +1,6 @@
 {
   "model_version": "v6.2 WIP",
-  "audit_date": "2026-10-20",
+  "audit_date": "2026-11-16",
   "note": "Publicly accessible sources prioritized. Revision C is the general architecture baseline; Revision B is retained only where specifically cited.",
   "sources": [
     {
@@ -152,6 +152,46 @@
       "used_for": "Plant-production demand and systems context",
       "status": "current",
       "last_audited": "2026-10-20"
+    },
+    {
+      "id": "techport-lunagrid-lite-147018",
+      "title": "LunaGrid-Lite: Demonstration of Tethered, Scalable Lunar Power Transmission",
+      "organization": "NASA TechPort",
+      "date": "2026",
+      "url": "https://techport.nasa.gov/projects/147018",
+      "used_for": "TRL 4 status, 100–500 m range, 1 kW demonstration objective, and unconfirmed Astrobotic carrier",
+      "status": "current",
+      "last_audited": "2026-11-16"
+    },
+    {
+      "id": "lunagrid-lite-cdr",
+      "title": "LunaGrid-Lite Completes Critical Design Review, Flight Model Underway",
+      "organization": "Astrobotic / Voyager Lunar Systems",
+      "date": "2025-08-20",
+      "url": "https://www.astrobotic.com/lunagrid-lite-completes-critical-design-review-flight-model-underway/",
+      "used_for": "Latest disclosed flight configuration: 4U CubeRover, 500 m cable, and 1 kW transfer",
+      "status": "current configuration disclosure; schedule target superseded",
+      "last_audited": "2026-11-16"
+    },
+    {
+      "id": "griffin-manifest",
+      "title": "Griffin-1 Moon Manifest",
+      "organization": "Astrobotic / Voyager Lunar Systems",
+      "date": "2026",
+      "url": "https://www.astrobotic.com/lunar-delivery/manifest/",
+      "used_for": "Identification of the Griffin-1 rover as the 2U BEACON CubeRover, distinct from LunaGrid-Lite",
+      "status": "current",
+      "last_audited": "2026-11-16"
+    },
+    {
+      "id": "voyager-moon-base-2026-11-12",
+      "title": "Delivering the Moon Base",
+      "organization": "Voyager Technologies",
+      "date": "2026-11-12",
+      "url": "https://voyagertechnologies.com/insights/delivering-the-moon-base/",
+      "used_for": "January 2027 Griffin-1 launch date and current lunar mission sequence",
+      "status": "current",
+      "last_audited": "2026-11-16"
     }
   ]
 }
