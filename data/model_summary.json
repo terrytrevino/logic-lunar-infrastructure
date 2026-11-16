@@ -19,5 +19,13 @@
   "six_crew_full_critical_battery_kwh": 129.75,
   "handover_full_critical_battery_kwh": 170.25,
   "six_crew_required_surviving_generation_kw": 4.5,
-  "note": "Version 6.2 completes a public-source and terminology audit without changing model formulas or numerical baselines. Space 4 All engineering allocations remain work in progress; see the workbook and references register for provenance and caveats."
+  "note": "Version 6.2 remains the numerical engineering baseline. The November 16, 2026 website update adds flight-validation context without changing model formulas: LunaGrid-Lite is treated as a 1 kW transfer demonstration and receives 0 kW of dependable generation credit until its carrier, landing date, duty cycle, and operating duration are confirmed.",
+  "last_site_update": "2026-11-16",
+  "lgl_demo_transfer_kw": 1,
+  "lgl_trl": 4,
+  "lgl_latest_configuration": "4U CubeRover, 500 m cable, 1 kW transfer demonstration",
+  "lgl_power_credit_kw": 0,
+  "lgl_carrier_status": "Unconfirmed; Griffin-1 carries the 2U BEACON CubeRover, not LunaGrid-Lite",
+  "lgl_schedule_status": "Historical 2026 target missed; no replacement flight date announced",
+  "griffin_1_launch": "January 2027"
 }
