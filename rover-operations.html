@@ -40,7 +40,7 @@
 </div>
 <details id="drive-mode">
   <summary>Drive the rover around rocks</summary>
-  <p>Open this course to see the rocks in the cameras above. Playing the mission trace switches the cameras to replay.</p>
+  <p>Open this course to see the rocks in the cameras above. Replay shows the same starting rocks as static obstacles. Blade and arm actions are available in the driving course.</p>
   <p>Use the buttons or arrow keys with focus on a driving control. Lower the front blade to push small rocks. Use the arm to pick up the smallest rock, then turn and place it off the route. Use the rear tamper to mark a compaction pass. Large rocks block the rover. Obstacles are placed for this exercise. Contact uses a simplified geometric model.</p>
   <div class="replay-controls" id="drive-controls">
     <button type="button" data-drive="left">Turn left</button>
@@ -316,7 +316,7 @@ const routeX = row =>['at_griffin','night_hold','insufficient_energy_to_depart']
     ? -rampRun : row.position_m;
 
 function drawReplay(value) {
-  document.getElementById('camera-mode').textContent='Mission replay. Open the driving course to see the rocks.';
+  document.getElementById('camera-mode').textContent='Mission replay. Rocks show their starting positions. The trace does not record rock interactions.';
   if(!replayRows.length) {
     views.forEach(ctx=>ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height));
     replayEvent.textContent='';
@@ -329,9 +329,10 @@ function drawReplay(value) {
   const returning=replayRows.slice(0,index+1).some(row=>row.event==='returned') || routeX(b)<routeX(a);
   const direction=returning?-1:1;
   const rover=roverFaces(x,0,z,returning?Math.PI:0);
-  const objects=[...terrain,ramp,...lander];
-  drawView(views[0],[-13,-17,toe+9],[20,0,toe],objects.concat(rover));
-  drawView(views[1],[x+direction*.4,0,z+1.05],[x+direction*6,0,z+.25],objects);
+  const scenery=[ramp,...lander,...course.flatMap(rockFaces)].map(face=>({...face,layer:1}));
+  const objects=[...terrain,...scenery];
+  drawView(views[0],[-13,-17,toe+9],[20,0,toe],objects.concat(rover.map(face=>({...face,layer:1}))),true);
+  drawView(views[1],[x+direction*.4,0,z+1.05],[x+direction*6,0,z+.25],objects,true);
   replayEvent.textContent=(eventLabels[a.event] ?? a.event)+' · '+mix(a.position_m,b.position_m,blend).toFixed(1)+' m from dock';
   if (index !== highlightedEvent) {
     trace.children[highlightedEvent]?.removeAttribute('aria-current');
