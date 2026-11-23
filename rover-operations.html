@@ -49,7 +49,7 @@
     <option value="south">Near first cluster · south side</option>
     <option value="north">Midcourse · north side</option>
   </select>
-  <p>Each autonomous run starts from the selected position and finishes at the marked goal, 21 m along the course.</p>
+  <p>The rover drives to the 21 m flag, then plans a return to the selected starting area. If blocked, it pauses and holds position.</p>
   <div class="replay-controls" id="drive-controls">
     <button type="button" data-drive="left">Turn left</button>
     <button type="button" data-drive="forward">Forward</button>
@@ -209,10 +209,18 @@ function targetFaces({x,y,r,color}) {
 let rocks, driver, tamps, carried, bladeDown;
 let autonomousTimer = null;
 let autonomousSteps = 0;
+let autonomousHome, returningHome, bestGoalDistance, lastProgressStep;
+const mappedRocks = new Map();
 function resetCourse() {
   stopAutonomous();
   rocks=course.map(rock=>({...rock}));
   driver={...(courseStarts[startSelect.value] ?? courseStarts.lane)};
+  autonomousHome={x:driver.x,y:driver.y};
+  returningHome=false;
+  autonomousSteps=0;
+  lastProgressStep=0;
+  bestGoalDistance=Infinity;
+  mappedRocks.clear();
   tamps=[];
   delivered=false;
   padWorked=false;
@@ -307,13 +315,39 @@ function stopAutonomous() {
   button.setAttribute('aria-pressed','false');
 }
 
+function safetyPause(reason) {
+  stopAutonomous();
+  drawCourse('Safety pause: '+reason+'. Rover holding position');
+}
+
 function autonomousStep() {
-  const goal = courseGoal;
-  if (gap(driver,goal)<.65) { stopAutonomous(); drawCourse('Run complete: reached the 21 m goal'); return; }
-  if (++autonomousSteps>160) { stopAutonomous(); drawCourse('Autonomous run stopped at step limit'); return; }
+  const goal = returningHome ? autonomousHome : courseGoal;
+  const remaining = gap(driver,goal);
+  if (remaining<.45) {
+    if (returningHome) {
+      stopAutonomous();
+      drawCourse('Round trip complete: rover parked in the starting area');
+    } else {
+      returningHome=true;
+      bestGoalDistance=Infinity;
+      lastProgressStep=autonomousSteps;
+      drawCourse('21 m target reached. Planning the return');
+    }
+    return;
+  }
+  if (++autonomousSteps>320) { safetyPause('step limit reached'); return; }
+  if (remaining<bestGoalDistance-.25) {
+    bestGoalDistance=remaining;
+    lastProgressStep=autonomousSteps;
+  } else if (autonomousSteps-lastProgressStep>=28) {
+    safetyPause('no progress toward the destination');
+    return;
+  }
   const sensed = rocks.filter(rock=>gap(driver,rock)-rock.r<=5);
+  for(const rock of sensed) mappedRocks.set(rock,{x:rock.x,y:rock.y,r:rock.r});
+  const obstacles = [...mappedRocks.values()];
   const points=[driver,goal];
-  for (const rock of sensed) {
+  for (const rock of obstacles) {
     for(let i=0;i<12;i++) {
       const angle=i*Math.PI/6, radius=rock.r+1.65;
       const point={x:rock.x+radius*Math.cos(angle),y:rock.y+radius*Math.sin(angle)};
@@ -335,7 +369,7 @@ function autonomousStep() {
       const end=points[to], distance=gap(start,end);
       if(distance<.01 || cost[from]+distance>=cost[to]) continue;
       const dx=(end.x-start.x)/distance, dy=(end.y-start.y)/distance;
-      const blocked=sensed.some(rock=>{
+      const blocked=obstacles.some(rock=>{
         const along=Math.max(0,Math.min(distance,(rock.x-start.x)*dx+(rock.y-start.y)*dy));
         return gap({x:start.x+along*dx,y:start.y+along*dy},rock)<rock.r+1.14;
       });
@@ -345,13 +379,13 @@ function autonomousStep() {
     }
   }
   const waypoint=first[1];
-  if(!waypoint) { stopAutonomous(); drawCourse('Autonomous stop: no clear route'); return; }
+  if(!waypoint) { safetyPause('no clear route'); return; }
   const heading=Math.atan2(waypoint.y-driver.y,waypoint.x-driver.x);
   const oldX=driver.x, oldY=driver.y;
   driver.heading=heading;
   drive('forward');
-  if(driver.x===oldX && driver.y===oldY) { stopAutonomous(); drawCourse('Autonomous stop: contact or boundary'); return; }
-  drawCourse('Autonomous · '+sensed.length+' obstacles in range');
+  if(driver.x===oldX && driver.y===oldY) { safetyPause('movement blocked by an obstacle or course boundary'); return; }
+  drawCourse((returningHome?'Returning':'Outbound')+' · '+sensed.length+' obstacles in range');
 }
 
 function drive(command) {
