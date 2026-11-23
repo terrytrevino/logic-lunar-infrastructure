@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rover Operations | Lunar Infrastructure</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+<p><a href="index.html">Lunar Infrastructure</a></p>
+<h1>Rover Operations</h1>
+<p>Open a rover-results.json file from a HESTIA GitHub Actions run. The file stays in your browser.</p>
+<label>Rover results <input type="file" accept=".json,application/json"></label>
+<p id="status" role="status"></p>
+<dl id="metrics"></dl>
+</main>
+<script>
+const input = document.querySelector('input');
+const metrics = document.querySelector('#metrics');
+const status = document.querySelector('#status');
+input.addEventListener('change', async () => {
+  const file = input.files[0];
+  if (!file) return;
+  metrics.replaceChildren();
+  try {
+    const result = JSON.parse(await file.text());
+    const values = [result.completed_distance_m, result.planned_distance_m,
+      result.remaining_battery_wh, result.charging_duration_h];
+    if (result.schema_version !== 1 || result.evidence !== 'illustrative_simulation' ||
+        !values.every(Number.isFinite) || typeof result.source_revision !== 'string') {
+      throw new Error('Unsupported result');
+    }
+    for (const [label, value] of [
+      ['Source revision', result.source_revision],
+      ['Distance', values[0] + ' of ' + values[1] + ' m'],
+      ['Remaining battery', values[2] + ' Wh'],
+      ['Charging time', values[3].toFixed(2) + ' h']
+    ]) {
+      const term = document.createElement('dt');
+      const detail = document.createElement('dd');
+      term.textContent = label;
+      detail.textContent = value;
+      metrics.append(term, detail);
+    }
+    status.textContent = 'Illustrative simulation';
+  } catch {
+    status.textContent = 'Choose a valid HESTIA rover-results.json file.';
+  }
+});
+</script>
+</body>
+</html>
