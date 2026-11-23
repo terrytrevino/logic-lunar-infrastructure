@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rover Operations | Lunar Infrastructure</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.replay-views{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.replay-views figure{margin:0}
+.replay-views canvas{display:block;width:100%;height:auto;background:#10151c;border-radius:8px}
+.replay-controls{display:flex;align-items:center;flex-wrap:wrap;gap:.75rem;margin:1rem 0}
+.replay-controls input{flex:1;min-width:9rem}
+#trace li[aria-current]{font-weight:bold}
+@media(max-width:720px){.replay-views{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <main class="wrap">
@@ -16,6 +25,18 @@
 <label>Rover results <input type="file" accept=".json,application/json"></label>
 <p id="status" role="status"></p>
 <dl id="metrics"></dl>
+<h2>Terrain replay</h2>
+<p>Site visualization using the HESTIA Nobile elevation patch. The replay samples the terrain at 16 m and uses modeled Griffin ramp geometry and approximate rover poses. Playback follows a straight test route with illustrative timing. Runs beyond the terrain patch continue past its edge.</p>
+<div class="replay-views">
+  <figure><canvas id="fixed-view" width="640" height="360" aria-label="Fixed camera terrain visualization"></canvas><figcaption>Fixed camera</figcaption></figure>
+  <figure><canvas id="rover-view" width="640" height="360" aria-label="Rover-mounted camera terrain visualization"></canvas><figcaption>Rover-mounted camera</figcaption></figure>
+</div>
+<div class="replay-controls">
+  <button type="button" id="replay-toggle" disabled>Play mission</button>
+  <label for="replay-position">Replay position</label>
+  <input type="range" id="replay-position" min="0" max="1" step=".01" value="0" disabled>
+  <output id="replay-event"></output>
+</div>
 <h2>Mission sequence</h2>
 <p id="trace-note">Events from the sortie model, in run order.</p>
 <ol id="trace"></ol>
@@ -34,9 +55,135 @@ const eventLabels = {
   night_hold: 'Held at Griffin overnight',
   insufficient_energy_to_depart: 'Held at Griffin due to low battery'
 };
+const elevations = [1.31,1.51,1.27,0.66,0.33,0.83,1.14,1.33,1.12,0.99,0.53,0.14,0.38,0.28,0.16,0,1.76,1.7,1.76,1.5,1.06,1.1,1.33,1.55,1.44,1.06,0.53,0.29,0.69,0.81,0.81,0.61,2.07,1.75,1.7,1.49,1.36,1.49,1.64,1.88,1.84,1.41,0.94,0.82,1.04,1.3,1.3,1.1,2.45,2.17,1.97,1.69,1.65,1.67,1.85,1.93,1.92,1.8,1.69,1.62,1.61,1.76,1.64,1.53,2.84,2.69,2.4,2.25,1.96,1.78,1.67,1.83,1.84,1.72,1.96,2.1,2.06,2.18,2.2,1.92,2.74,2.9,2.65,2.46,2.11,1.59,1.59,1.6,1.63,1.8,2.31,2.73,2.67,2.61,2.52,2.16,2.47,2.77,2.78,2.48,2.16,1.66,1.45,1.57,1.87,2.2,2.72,3.11,3.04,2.66,2.3,2.17,2.48,2.45,2.79,3,2.71,2.22,1.96,2.22,2.58,2.79,3.01,3.32,3.03,2.53,2.16,2.11,2.91,2.88,3.2,3.22,3.28,2.87,2.71,2.82,3.13,3.22,3.26,3.31,3,2.71,2.47,2.4,3.49,3.56,3.66,3.57,3.47,3.47,3.55,3.47,3.46,3.44,3.34,3.28,3.12,2.92,2.76,2.48,3.77,4.17,4.13,3.99,3.97,4.03,4.08,4.03,3.94,3.72,3.55,3.37,3.24,2.96,2.84,2.6,4.17,4.34,4.4,4.48,4.59,4.36,4.21,4.22,4.27,4.14,3.74,3.52,3.64,3.48,3.31,2.78,4.73,4.63,4.46,4.43,4.67,4.65,4.7,4.28,4.59,4.55,4.1,4,4.13,4.09,3.78,3.5,5.08,4.9,4.66,4.65,5.03,5.05,5.11,5.33,5.25,5.19,4.79,4.83,4.77,4.6,4.46,4.29,5.9,5.36,5.03,5.02,5.5,5.48,5.31,5.6,5.61,5.49,5.25,5.22,5.1,5.18,5.09,5,6.41,6.15,5.85,5.66,5.87,5.77,5.38,5.42,5.65,5.68,5.42,5.37,5.61,5.98,5.88,5.68];
+const views = ['fixed-view','rover-view'].map(id => document.getElementById(id).getContext('2d'));
+const toggle = document.getElementById('replay-toggle');
+const position = document.getElementById('replay-position');
+const replayEvent = document.getElementById('replay-event');
+let replayRows = [];
+let animation = null;
+let playStart = 0;
+const rampRun = 7.464;
+const rampRise = 2;
+const dot = (a,b) => a.reduce((sum,value,i) => sum + value*b[i],0);
+const minus = (a,b) => a.map((value,i) => value-b[i]);
+const unit = a => a.map(value => value/Math.hypot(...a));
+const cross = (a,b) => [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const mix = (a,b,t) => a+(b-a)*t;
+
+function ground(x,y) {
+  const gx = Math.max(0,Math.min(14.999,(x+120)/16));
+  const gy = Math.max(0,Math.min(14.999,(120-y)/16));
+  const col = Math.floor(gx), row = Math.floor(gy), i = row*16+col;
+  return mix(mix(elevations[i],elevations[i+1],gx-col),
+    mix(elevations[i+16],elevations[i+17],gx-col),gy-row);
+}
+const terrain = [];
+for(let row=0;row<15;row++) {
+  for(let col=0;col<15;col++) {
+    const x=col*16-120, y=120-row*16, i=row*16+col;
+    const a=[x,y,elevations[i]], b=[x+16,y,elevations[i+1]];
+    const c=[x+16,y-16,elevations[i+17]], d=[x,y-16,elevations[i+16]];
+    const shade=Math.round(112+(b[2]-a[2])*9+(d[2]-a[2])*13);
+    const color='rgb('+shade+' '+(shade-3)+' '+(shade-7)+')';
+    terrain.push({points:[a,b,c],color},{points:[a,c,d],color});
+  }
+}
+
+function box(x,y,z,length,width,height,color) {
+  const a=[x,y,z], b=[x+length,y,z], c=[x+length,y+width,z], d=[x,y+width,z];
+  const top=[a,b,c,d].map(([px,py,pz])=>[px,py,pz+height]);
+  return [[a,b,top[1],top[0]],[b,c,top[2],top[1]],[c,d,top[3],top[2]],
+    [d,a,top[0],top[3]],top].map(points=>({points,color}));
+}
+
+function drawView(ctx, eye, target, objects) {
+  const forward=unit(minus(target,eye));
+  const right=unit(cross(forward,[0,0,1]));
+  const up=cross(right,forward);
+  const w=ctx.canvas.width, h=ctx.canvas.height, focal=w*.75;
+  ctx.fillStyle='#10151c';
+  ctx.fillRect(0,0,w,h);
+  const polygons=[];
+  for(const {points,color} of objects) {
+    const camera=points.map(point=>{
+      const relative=minus(point,eye);
+      return [dot(relative,right),dot(relative,up),dot(relative,forward)];
+    });
+    const clipped=[];
+    for(let i=0;i<camera.length;i++) {
+      const a=camera[i], b=camera[(i+1)%camera.length];
+      if(a[2]>=.15) clipped.push(a);
+      if((a[2]>=.15)!==(b[2]>=.15)) {
+        const t=(.15-a[2])/(b[2]-a[2]);
+        clipped.push([mix(a[0],b[0],t),mix(a[1],b[1],t),.15]);
+      }
+    }
+    if(clipped.length>=3) polygons.push({color,clipped,depth:clipped.reduce((sum,p)=>sum+p[2],0)/clipped.length});
+  }
+  polygons.sort((a,b)=>b.depth-a.depth);
+  for(const {color,clipped} of polygons) {
+    ctx.beginPath();
+    clipped.forEach(([x,y,z],i)=>ctx[i?'lineTo':'moveTo'](w/2+focal*x/z,h/2-focal*y/z));
+    ctx.closePath();
+    ctx.fillStyle=color;
+    ctx.fill();
+  }
+}
+const toe=ground(0,0);
+const deck=toe+rampRise;
+const ramp={points:[[-rampRun,-1.25,deck],[0,-1.25,toe],[0,1.25,toe],[-rampRun,1.25,deck]],color:'#b1b2b3'};
+const lander=box(-12,-2.5,toe,12-rampRun,5,rampRise,'#c9c8c3');
+
+function drawReplay(value) {
+  if(!replayRows.length) {
+    views.forEach(ctx=>ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height));
+    replayEvent.textContent='';
+    return;
+  }
+  const index=Math.floor(value), blend=value-index;
+  const a=replayRows[index], b=replayRows[Math.min(index+1,replayRows.length-1)];
+  const routeX=row=>['at_griffin','night_hold','insufficient_energy_to_depart'].includes(row.event)
+    ? -rampRun : row.position_m;
+  const x=mix(routeX(a),routeX(b),blend);
+  const z=x<0?toe-rampRise*x/rampRun:ground(x,0);
+  const returning=replayRows.slice(0,index+1).some(row=>row.event==='returned') || routeX(b)<routeX(a);
+  const direction=returning?-1:1;
+  const rover=box(x-.75,-.75,z,1.5,1.5,1,'#d9a650');
+  const objects=[...terrain,ramp,...lander];
+  drawView(views[0],[-13,-17,toe+9],[20,0,toe],objects.concat(rover));
+  drawView(views[1],[x+direction*.4,0,z+1.05],[x+direction*6,0,z+.25],objects);
+  replayEvent.textContent=(eventLabels[a.event] ?? a.event)+' · '+mix(a.position_m,b.position_m,blend).toFixed(1)+' m from dock';
+  Array.from(trace.children).forEach((item,i)=>{
+    if(i===index) item.setAttribute('aria-current','step');
+    else item.removeAttribute('aria-current');
+  });
+}
+
+function stopReplay() {
+  if(animation!==null) cancelAnimationFrame(animation);
+  animation=null;
+  toggle.textContent='Play mission';
+}
+function tick(now) {
+  position.value=Math.min(Number(position.max),(now-playStart)/1000);
+  drawReplay(Number(position.value));
+  if(Number(position.value)>=Number(position.max)) stopReplay();
+  else animation=requestAnimationFrame(tick);
+}
+toggle.onclick=()=>{
+  if(animation!==null) { stopReplay(); return; }
+  if(Number(position.value)>=Number(position.max)) position.value=0;
+  playStart=performance.now()-Number(position.value)*1000;
+  toggle.textContent='Pause';
+  animation=requestAnimationFrame(tick);
+};
+position.oninput=()=>{stopReplay();drawReplay(Number(position.value));};
+
 function renderTrace(rows) {
   trace.replaceChildren();
   const events = Array.isArray(rows) ? rows : [];
+  replayRows = [];
   for (const row of events) {
     if (!row || typeof row.event !== 'string' ||
         ![row.position_m, row.completed_m, row.battery_wh].every(Number.isFinite)) continue;
@@ -48,7 +195,13 @@ function renderTrace(rows) {
       row.battery_wh.toFixed(1) + ' Wh'
     ].join(' · ');
     trace.append(item);
+    replayRows.push(row);
   }
+  stopReplay();
+  position.max = Math.max(0,replayRows.length-1);
+  position.value = 0;
+  toggle.disabled = position.disabled = replayRows.length<2;
+  drawReplay(0);
   traceNote.textContent = trace.childElementCount ?
     'Events from the sortie model, in run order.' : 'This results file has no mission events.';
 }
