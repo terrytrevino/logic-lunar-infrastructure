@@ -39,12 +39,15 @@
 </div>
 <details id="drive-mode">
   <summary>Drive the rover around rocks</summary>
-  <p>Use the buttons or arrow keys with focus on a driving control. Drive into a movable rock to push it. Large rocks block the rover. Obstacles are placed for this exercise. Contact uses a simplified geometric model.</p>
+  <p>Use the buttons or arrow keys with focus on a driving control. Lower the front blade to push small rocks. Use the arm to pick up the smallest rock, then turn and place it off the route. Use the rear tamper to mark a compaction pass. Large rocks block the rover. Obstacles are placed for this exercise. Contact uses a simplified geometric model.</p>
   <div class="replay-controls" id="drive-controls">
     <button type="button" data-drive="left">Turn left</button>
     <button type="button" data-drive="forward">Forward</button>
     <button type="button" data-drive="right">Turn right</button>
     <button type="button" data-drive="back">Reverse</button>
+    <button type="button" data-drive="blade">Toggle blade</button>
+    <button type="button" data-drive="arm">Arm pick up / place</button>
+    <button type="button" data-drive="tamper">Cycle rear tamper</button>
     <button type="button" data-drive="reset">Reset course</button>
   </div>
   <p id="drive-status" role="status"></p>
@@ -156,10 +159,13 @@ const course = [
   {x:12,y:.5,r:1.25,movable:false},
   {x:15,y:3,r:.8,movable:true}
 ];
-let rocks, driver;
+let rocks, driver, tamps, carried, bladeDown;
 function resetCourse() {
   rocks=course.map(rock=>({...rock}));
   driver={x:1,y:0,heading:0};
+  tamps=[];
+  carried=null;
+  bladeDown=false;
   drawCourse('Course reset');
 }
 const gap=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -177,10 +183,21 @@ function rockFaces({x,y,r,movable}) {
 function drawCourse(message) {
   const {x,y,heading}=driver;
   const z=ground(x,y), dx=Math.cos(heading), dy=Math.sin(heading);
-  const rover=box(-.75,-.75,0,1.5,1.5,1,'#d9a650').map(({points,color})=>({
+  const tools=[
+    ...box(.73,-.86,bladeDown?.04:.48,.15,1.72,.35,'#a6bdcf'),
+    ...box(-1.18,-.46,.12,.42,.92,.3,'#637f97'),
+    ...box(.05,-.16,.9,.32,.32,.55,'#d5844e'),
+    ...box(.28,-.11,1.25,.71,.22,.2,'#d5844e')
+  ];
+  const rover=[...box(-.75,-.75,0,1.5,1.5,1,'#d9a650'),...tools].map(({points,color})=>({
     points:points.map(([px,py,pz])=>[x+px*dx-py*dy,y+px*dy+py*dx,z+pz]),color
   }));
-  const objects=[...terrain,ramp,...lander,...rocks.flatMap(rockFaces)];
+  const marks=tamps.map(({x,y})=>({color:'#564f46',points:[
+    [x-.3,y-.35,ground(x-.3,y-.35)+.03],[x+.3,y-.35,ground(x+.3,y-.35)+.03],
+    [x+.3,y+.35,ground(x+.3,y+.35)+.03],[x-.3,y+.35,ground(x-.3,y+.35)+.03]
+  ]}));
+  const load=carried?box(x+dx*1.1-.2,y+dy*1.1-.2,z+1.12,.4,.4,.35,'#a58764'):[];
+  const objects=[...terrain,ramp,...lander,...marks,...rocks.flatMap(rockFaces),...load];
   drawView(views[0],[-4,-15,toe+9],[9,0,toe],objects.concat(rover));
   drawView(views[1],[x+dx*.45,y+dy*.45,z+1.05],[x+dx*6,y+dy*6,z+.25],objects);
   driveStatus.textContent=message+' · '+x.toFixed(1)+' m along course, '+y.toFixed(1)+' m lateral';
@@ -189,6 +206,41 @@ function drawCourse(message) {
 
 function drive(command) {
   if(command==='reset') { resetCourse(); return; }
+  const dxHeading=Math.cos(driver.heading), dyHeading=Math.sin(driver.heading);
+  if(command==='blade') {
+    bladeDown=!bladeDown;
+    drawCourse(bladeDown?'Front blade lowered':'Front blade raised');
+    return;
+  }
+  if(command==='tamper') {
+    const foot={x:driver.x-dxHeading*1.05,y:driver.y-dyHeading*1.05};
+    if(foot.x<0 || rocks.some(rock=>gap(foot,rock)<rock.r+.4)) {
+      drawCourse('Rear tamper needs clear ground');
+      return;
+    }
+    tamps.push(foot);
+    drawCourse('Rear tamper cycled · '+tamps.length+' compaction marks');
+    return;
+  }
+  if(command==='arm') {
+    const reach={x:driver.x+dxHeading*1.65,y:driver.y+dyHeading*1.65};
+    if(carried) {
+      if(reach.x<0 || reach.x>24 || Math.abs(reach.y)>9 ||
+          rocks.some(rock=>gap(reach,rock)<rock.r+carried.r)) {
+        drawCourse('Arm placement blocked');
+        return;
+      }
+      rocks.push({...carried,...reach});
+      carried=null;
+      drawCourse('Arm placed rock');
+    } else {
+      const index=rocks.findIndex(rock=>rock.movable && rock.r<=.55 && gap(rock,reach)<.65);
+      if(index<0) { drawCourse('Position a small rock in front of the arm'); return; }
+      [carried]=rocks.splice(index,1);
+      drawCourse('Arm picked up rock');
+    }
+    return;
+  }
   if(command==='left' || command==='right') {
     driver.heading+=(command==='left'?1:-1)*Math.PI/12;
     drawCourse('Turned '+command);
@@ -200,7 +252,7 @@ function drive(command) {
   if(next.x<.75 || next.x>23 || Math.abs(next.y)>9) { drawCourse('Course boundary'); return; }
   const contacts=rocks.filter(rock=>gap(next,rock)<rock.r+.9 && gap(next,rock)<gap(driver,rock));
   const rock=contacts[0];
-  if(contacts.length>1 || (rock && !rock.movable)) { drawCourse('Blocked by rock'); return; }
+  if(contacts.length>1 || (rock && (!rock.movable || !bladeDown || command!=='forward'))) { drawCourse('Blocked by rock'); return; }
   if(rock) {
     const pushed={x:rock.x+dx,y:rock.y+dy};
     if(pushed.x-rock.r<0 || pushed.x+rock.r>24 || Math.abs(pushed.y)+rock.r>10 ||
