@@ -42,6 +42,13 @@
   <summary>Drive the rover around rocks</summary>
   <p>Open this course to see the rocks in the cameras above. Replay shows the same starting rocks as static obstacles. Blade and arm actions are available in the driving course.</p>
   <p>Use the buttons or arrow keys with focus on a driving control. Lower the front blade to push small rocks. Use the arm to pick up the smallest rock, then turn and place it off the route. Use the rear tamper to mark a compaction pass. Large rocks block the rover. Autonomous avoidance uses simulated range readings and aims for the far end of the course. Obstacles are placed for this exercise. Contact uses a simplified geometric model.</p>
+  <label for="course-start">Starting position</label>
+  <select id="course-start">
+    <option value="lane">Lane entrance</option>
+    <option value="south">Near first cluster · south side</option>
+    <option value="north">Midcourse · north side</option>
+  </select>
+  <p>Each autonomous run starts from the selected position and finishes at the marked goal, 21 m along the course.</p>
   <div class="replay-controls" id="drive-controls">
     <button type="button" data-drive="left">Turn left</button>
     <button type="button" data-drive="forward">Forward</button>
@@ -165,17 +172,24 @@ const course = [
   {x:12,y:.5,r:1.25,movable:false},
   {x:15,y:3,r:.8,movable:true}
 ];
+const startSelect = document.getElementById('course-start');
+const courseStarts = {
+  lane:{x:1,y:0,heading:0},
+  south:{x:6,y:-3,heading:0},
+  north:{x:11,y:3.5,heading:0}
+};
+const courseGoal = {x:21,y:0};
 let rocks, driver, tamps, carried, bladeDown;
 let autonomousTimer = null;
 let autonomousSteps = 0;
 function resetCourse() {
   stopAutonomous();
   rocks=course.map(rock=>({...rock}));
-  driver={x:1,y:0,heading:0};
+  driver={...(courseStarts[startSelect.value] ?? courseStarts.lane)};
   tamps=[];
   carried=null;
   bladeDown=false;
-  drawCourse('Course reset');
+  drawCourse('Starting position ready');
 }
 const gap=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 
@@ -242,7 +256,10 @@ function drawCourse(message) {
     [x+.3,y+.35,ground(x+.3,y+.35)+.03],[x-.3,y+.35,ground(x-.3,y+.35)+.03]
   ]}));
   const load=carried?box(x+dx*1.1-.2,y+dy*1.1-.2,z+1.12,.4,.4,.35,'#a58764'):[];
-  const courseObjects=[ramp,...lander,...marks,...rocks.flatMap(rockFaces),...load];
+  const goalZ = ground(courseGoal.x,courseGoal.y);
+  const goalMarker=box(courseGoal.x-.06,courseGoal.y-.06,goalZ,.12,.12,1.1,'#e5edf4')
+    .concat(box(courseGoal.x-.05,courseGoal.y-.06,goalZ+.85,.10,.65,.3,'#4f9eff'));
+  const courseObjects=[ramp,...lander,...marks,...rocks.flatMap(rockFaces),...load,...goalMarker];
   const objects=[...terrain,...courseObjects.map(face=>({...face,layer:1}))];
   drawView(views[0],[-4,-15,toe+9],[9,0,toe],objects.concat(rover.map(face=>({...face,layer:1}))),true);
   drawView(views[1],[x+dx*.45,y+dy*.45,z+1.05],[x+dx*6,y+dy*6,z+.25],objects,true);
@@ -260,8 +277,8 @@ function stopAutonomous() {
 }
 
 function autonomousStep() {
-  const goal = {x:21,y:0};
-  if (gap(driver,goal)<.65) { stopAutonomous(); drawCourse('Autonomous goal reached'); return; }
+  const goal = courseGoal;
+  if (gap(driver,goal)<.65) { stopAutonomous(); drawCourse('Run complete: reached the 21 m goal'); return; }
   if (++autonomousSteps>160) { stopAutonomous(); drawCourse('Autonomous run stopped at step limit'); return; }
   const sensed = rocks.filter(rock=>gap(driver,rock)-rock.r<=5);
   const points=[driver,goal];
@@ -375,6 +392,7 @@ driveMode.ontoggle=()=>{
   if(driveMode.open) { stopReplay(); resetCourse(); }
   else { stopAutonomous(); drawReplay(Number(position.value)); }
 };
+startSelect.onchange=()=>{if(driveMode.open) resetCourse();};
 const controls=document.getElementById('drive-controls');
 controls.onclick=event=>{
   const command=event.target.dataset.drive;
