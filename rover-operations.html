@@ -16,11 +16,42 @@
 <label>Rover results <input type="file" accept=".json,application/json"></label>
 <p id="status" role="status"></p>
 <dl id="metrics"></dl>
+<h2>Mission sequence</h2>
+<p id="trace-note">Events from the sortie model, in run order.</p>
+<ol id="trace"></ol>
 </main>
 <script>
 const input = document.querySelector('input');
 const metrics = document.querySelector('#metrics');
 const status = document.querySelector('#status');
+const trace = document.querySelector('#trace');
+const traceNote = document.querySelector('#trace-note');
+const eventLabels = {
+  at_griffin: 'At Griffin', undocked: 'Departed the dock',
+  work_segment_logged: 'Completed a work segment', return_threshold: 'Reached the return threshold',
+  returned: 'Returned to the dock', dock_failed: 'First docking attempt failed',
+  docked_on_retry: 'Docked on retry', charged: 'Recharge complete',
+  night_hold: 'Held at Griffin overnight',
+  insufficient_energy_to_depart: 'Held at Griffin due to low battery'
+};
+function renderTrace(rows) {
+  trace.replaceChildren();
+  const events = Array.isArray(rows) ? rows : [];
+  for (const row of events) {
+    if (!row || typeof row.event !== 'string' ||
+        ![row.position_m, row.completed_m, row.battery_wh].every(Number.isFinite)) continue;
+    const item = document.createElement('li');
+    item.textContent = [
+      Object.hasOwn(eventLabels, row.event) ? eventLabels[row.event] : row.event,
+      row.position_m + ' m from dock',
+      row.completed_m + ' m of work logged',
+      row.battery_wh.toFixed(1) + ' Wh'
+    ].join(' · ');
+    trace.append(item);
+  }
+  traceNote.textContent = trace.childElementCount ?
+    'Events from the sortie model, in run order.' : 'This results file has no mission events.';
+}
 function render(result, label) {
   metrics.replaceChildren();
     const values = [result.completed_distance_m, result.planned_distance_m,
@@ -41,19 +72,107 @@ function render(result, label) {
       detail.textContent = value;
       metrics.append(term, detail);
     }
+  renderTrace(result.trace);
   status.textContent = label;
 }
 function showSample() {
   input.value = '';
   render({
-    schema_version: 1,
-    evidence: 'illustrative_simulation',
-    source_revision: 'a326f3993a8480e26b85c73c2608b407b2330111',
-    completed_distance_m: 50,
-    planned_distance_m: 100,
-    remaining_battery_wh: 240,
-    charging_duration_h: 4.41
-  }, 'Sample result reproduced from the test baseline. Illustrative simulation.');
+  "schema_version": 1,
+  "source_revision": "a326f3993a8480e26b85c73c2608b407b2330111",
+  "evidence": "illustrative_simulation",
+  "planned_distance_m": 100,
+  "completed_distance_m": 50,
+  "remaining_battery_wh": 240,
+  "charging_duration_h": 4.411111111111111,
+  "terminal_event": "charged",
+  "trace": [
+    {
+      "event": "at_griffin",
+      "position_m": 0,
+      "completed_m": 0,
+      "battery_wh": 160,
+      "charge_hours": 0
+    },
+    {
+      "event": "undocked",
+      "position_m": 0,
+      "completed_m": 0,
+      "battery_wh": 160,
+      "charge_hours": 0
+    },
+    {
+      "event": "work_segment_logged",
+      "position_m": 10,
+      "completed_m": 10,
+      "battery_wh": 140,
+      "charge_hours": 0
+    },
+    {
+      "event": "work_segment_logged",
+      "position_m": 20,
+      "completed_m": 20,
+      "battery_wh": 120,
+      "charge_hours": 0
+    },
+    {
+      "event": "work_segment_logged",
+      "position_m": 30,
+      "completed_m": 30,
+      "battery_wh": 100,
+      "charge_hours": 0
+    },
+    {
+      "event": "work_segment_logged",
+      "position_m": 40,
+      "completed_m": 40,
+      "battery_wh": 80,
+      "charge_hours": 0
+    },
+    {
+      "event": "work_segment_logged",
+      "position_m": 50,
+      "completed_m": 50,
+      "battery_wh": 60,
+      "charge_hours": 0
+    },
+    {
+      "event": "return_threshold",
+      "position_m": 50,
+      "completed_m": 50,
+      "battery_wh": 60,
+      "charge_hours": 0
+    },
+    {
+      "event": "returned",
+      "position_m": 0,
+      "completed_m": 50,
+      "battery_wh": 47.5,
+      "charge_hours": 0
+    },
+    {
+      "event": "dock_failed",
+      "position_m": 0,
+      "completed_m": 50,
+      "battery_wh": 44.5,
+      "charge_hours": 0
+    },
+    {
+      "event": "docked_on_retry",
+      "position_m": 0,
+      "completed_m": 50,
+      "battery_wh": 41.5,
+      "charge_hours": 0
+    },
+    {
+      "event": "charged",
+      "position_m": 0,
+      "completed_m": 50,
+      "battery_wh": 240,
+      "charge_hours": 4.411111111111111
+    }
+  ]
+}, 'Sample result reproduced from the test baseline. Illustrative simulation.');
 }
 document.querySelector('#sample').addEventListener('click', showSample);
 input.addEventListener('change', async () => {
@@ -63,6 +182,7 @@ input.addEventListener('change', async () => {
     render(JSON.parse(await file.text()), 'Imported result. Illustrative simulation.');
   } catch {
     metrics.replaceChildren();
+    renderTrace([]);
     status.textContent = 'Choose a valid HESTIA rover-results.json file.';
   }
 });
