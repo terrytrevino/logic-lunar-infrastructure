@@ -26,7 +26,7 @@
 <p id="status" role="status"></p>
 <dl id="metrics"></dl>
 <h2>Terrain replay</h2>
-<p>Site visualization using the HESTIA Nobile elevation patch. The replay samples the terrain at 16 m and uses modeled Griffin ramp geometry and approximate rover poses. Playback follows a straight test route with illustrative timing. Runs beyond the terrain patch continue past its edge.</p>
+<p>Site visualization using the HESTIA Nobile elevation patch. The replay samples the terrain at 16 m and uses modeled Griffin ramp geometry and approximate rover poses. Playback follows a straight test route with distance-based playback and brief pauses for stationary events. Runs beyond the terrain patch continue past its edge.</p>
 <div class="replay-views">
   <figure><canvas id="fixed-view" width="640" height="360" aria-label="Fixed camera terrain visualization"></canvas><figcaption>Fixed camera. The silver blade marks the front, the blue tamper marks the rear, and the orange arm sits above the chassis.</figcaption></figure>
   <figure><canvas id="rover-view" width="640" height="360" aria-label="Rover-mounted camera terrain visualization"></canvas><figcaption>Rover-mounted camera</figcaption></figure>
@@ -78,7 +78,10 @@ const position = document.getElementById('replay-position');
 const replayEvent = document.getElementById('replay-event');
 let replayRows = [];
 let animation = null;
-let playStart = 0;
+let previousFrame = null;
+let elapsed = 0;
+let eventTimes = [];
+let highlightedEvent = -1;
 const rampRun = 7.464;
 const rampRise = 2;
 const dot = (a,b) => a.reduce((sum,value,i) => sum + value*b[i],0);
@@ -307,6 +310,9 @@ controls.onkeydown=event=>{
   if(command) {event.preventDefault(); drive(command);}
 };
 
+const routeX = row =>['at_griffin','night_hold','insufficient_energy_to_depart'].includes(row.event)
+    ? -rampRun : row.position_m;
+
 function drawReplay(value) {
   if(!replayRows.length) {
     views.forEach(ctx=>ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height));
@@ -315,8 +321,6 @@ function drawReplay(value) {
   }
   const index=Math.floor(value), blend=value-index;
   const a=replayRows[index], b=replayRows[Math.min(index+1,replayRows.length-1)];
-  const routeX=row=>['at_griffin','night_hold','insufficient_energy_to_depart'].includes(row.event)
-    ? -rampRun : row.position_m;
   const x=mix(routeX(a),routeX(b),blend);
   const z=x<0?toe-rampRise*x/rampRun:ground(x,0);
   const returning=replayRows.slice(0,index+1).some(row=>row.event==='returned') || routeX(b)<routeX(a);
@@ -326,28 +330,39 @@ function drawReplay(value) {
   drawView(views[0],[-13,-17,toe+9],[20,0,toe],objects.concat(rover));
   drawView(views[1],[x+direction*.4,0,z+1.05],[x+direction*6,0,z+.25],objects);
   replayEvent.textContent=(eventLabels[a.event] ?? a.event)+' · '+mix(a.position_m,b.position_m,blend).toFixed(1)+' m from dock';
-  Array.from(trace.children).forEach((item,i)=>{
-    if(i===index) item.setAttribute('aria-current','step');
-    else item.removeAttribute('aria-current');
-  });
+  if (index !== highlightedEvent) {
+    trace.children[highlightedEvent]?.removeAttribute('aria-current');
+    trace.children[index]?.setAttribute('aria-current','step');
+    highlightedEvent = index;
+  }
 }
 
 function stopReplay() {
   if(animation!==null) cancelAnimationFrame(animation);
   animation=null;
+  previousFrame=null;
   toggle.textContent='Play mission';
 }
 function tick(now) {
-  position.value=Math.min(Number(position.max),(now-playStart)/1000);
-  drawReplay(Number(position.value));
-  if(Number(position.value)>=Number(position.max)) stopReplay();
+  const end = eventTimes.at(-1);
+  if (previousFrame !== null) elapsed = Math.min(end, elapsed + Math.min(.1, (now - previousFrame)/1000));
+  previousFrame = now;
+  let index = 0;
+  while (index + 1 < eventTimes.length && eventTimes[index + 1] <= elapsed) index++;
+  const value = index + (index + 1 < eventTimes.length ?
+    (elapsed - eventTimes[index]) / (eventTimes[index+1] - eventTimes[index]) : 0);
+  position.value = value;
+  drawReplay(value);
+  if (elapsed >= end) stopReplay();
   else animation=requestAnimationFrame(tick);
 }
 toggle.onclick=()=>{
   driveMode.open=false;
   if(animation!==null) { stopReplay(); return; }
   if(Number(position.value)>=Number(position.max)) position.value=0;
-  playStart=performance.now()-Number(position.value)*1000;
+  const value = Number(position.value);
+  const index = Math.floor(value);
+  elapsed = mix(eventTimes[index], eventTimes[index+1], value-index);
   toggle.textContent='Pause';
   animation=requestAnimationFrame(tick);
 };
@@ -372,6 +387,12 @@ function renderTrace(rows) {
     replayRows.push(row);
   }
   stopReplay();
+  highlightedEvent = -1;
+  eventTimes = [0];
+  for (let i=1; i<replayRows.length; i++) {
+    const meters = Math.abs(routeX(replayRows[i])-routeX(replayRows[i-1]));
+    eventTimes.push(eventTimes[i-1] + Math.max(.75, meters/8));
+  }
   position.max = Math.max(0,replayRows.length-1);
   position.value = 0;
   toggle.disabled = position.disabled = replayRows.length<2;
