@@ -28,7 +28,7 @@
 <h2>Terrain replay</h2>
 <p>Site visualization using the HESTIA Nobile elevation patch. The replay samples the terrain at 16 m and uses modeled Griffin ramp geometry and approximate rover poses. Playback follows a straight test route with illustrative timing. Runs beyond the terrain patch continue past its edge.</p>
 <div class="replay-views">
-  <figure><canvas id="fixed-view" width="640" height="360" aria-label="Fixed camera terrain visualization"></canvas><figcaption>Fixed camera</figcaption></figure>
+  <figure><canvas id="fixed-view" width="640" height="360" aria-label="Fixed camera terrain visualization"></canvas><figcaption>Fixed camera. The silver blade marks the front, the blue tamper marks the rear, and the orange arm sits above the chassis.</figcaption></figure>
   <figure><canvas id="rover-view" width="640" height="360" aria-label="Rover-mounted camera terrain visualization"></canvas><figcaption>Rover-mounted camera</figcaption></figure>
 </div>
 <div class="replay-controls">
@@ -180,18 +180,47 @@ function rockFaces({x,y,r,movable}) {
   const colors=movable?['#a58764','#c0a786','#806b5c']:['#60636a','#878991','#505359'];
   return base.map((point,i)=>({points:[point,base[(i+1)%base.length],peak],color:colors[i%3]}));
 }
+function wheelFaces(x,y) {
+  const ring = side => Array.from({length:12},(_,i)=>{
+    const angle=i*Math.PI/6;
+    return [x+.32*Math.cos(angle),y+side,.32+.32*Math.sin(angle)];
+  });
+  const near=ring(-.13), far=ring(.13);
+  const faces=[{points:near,color:'#33383e'},{points:far,color:'#33383e'}];
+  for(let i=0;i<near.length;i++) {
+    const next=(i+1)%near.length;
+    faces.push({points:[near[i],near[next],far[next],far[i]],color:i%2?'#252a2f':'#3e464e'});
+  }
+  for(const side of [-.133,.133]) {
+    const points=ring(side).map(([px,py,pz])=>[x+(px-x)*.43,py,.32+(pz-.32)*.43]);
+    faces.push({points,color:'#a2aab3'});
+  }
+  return faces;
+}
+
+function roverFaces(x,y,z,heading,lowered=false) {
+  const dx=Math.cos(heading), dy=Math.sin(heading);
+  const faces=[
+    ...box(-.75,-.57,.42,1.5,1.14,.36,'#d9a650'),
+    ...box(-.55,-.45,.78,.85,.9,.26,'#e2be73'),
+    ...box(.73,-.86,lowered?.04:.48,.15,1.72,.35,'#a6bdcf'),
+    ...box(-1.12,-.22,.38,.55,.44,.19,'#637f97'),
+    ...box(-1.24,-.46,.12,.42,.92,.3,'#637f97'),
+    ...box(.05,-.16,.96,.32,.32,.4,'#d5844e'),
+    ...box(.28,-.11,1.23,.71,.22,.2,'#d5844e')
+  ];
+  for(const axle of [-.51,.51]) {
+    for(const side of [-.68,.68]) faces.push(...wheelFaces(axle,side));
+  }
+  return faces.map(({points,color})=>({
+    points:points.map(([px,py,pz])=>[x+px*dx-py*dy,y+px*dy+py*dx,z+pz]),color
+  }));
+}
+
 function drawCourse(message) {
   const {x,y,heading}=driver;
   const z=ground(x,y), dx=Math.cos(heading), dy=Math.sin(heading);
-  const tools=[
-    ...box(.73,-.86,bladeDown?.04:.48,.15,1.72,.35,'#a6bdcf'),
-    ...box(-1.18,-.46,.12,.42,.92,.3,'#637f97'),
-    ...box(.05,-.16,.9,.32,.32,.55,'#d5844e'),
-    ...box(.28,-.11,1.25,.71,.22,.2,'#d5844e')
-  ];
-  const rover=[...box(-.75,-.75,0,1.5,1.5,1,'#d9a650'),...tools].map(({points,color})=>({
-    points:points.map(([px,py,pz])=>[x+px*dx-py*dy,y+px*dy+py*dx,z+pz]),color
-  }));
+  const rover=roverFaces(x,y,z,heading,bladeDown);
   const marks=tamps.map(({x,y})=>({color:'#564f46',points:[
     [x-.3,y-.35,ground(x-.3,y-.35)+.03],[x+.3,y-.35,ground(x+.3,y-.35)+.03],
     [x+.3,y+.35,ground(x+.3,y+.35)+.03],[x-.3,y+.35,ground(x-.3,y+.35)+.03]
@@ -290,7 +319,7 @@ function drawReplay(value) {
   const z=x<0?toe-rampRise*x/rampRun:ground(x,0);
   const returning=replayRows.slice(0,index+1).some(row=>row.event==='returned') || routeX(b)<routeX(a);
   const direction=returning?-1:1;
-  const rover=box(x-.75,-.75,z,1.5,1.5,1,'#d9a650');
+  const rover=roverFaces(x,0,z,returning?Math.PI:0);
   const objects=[...terrain,ramp,...lander];
   drawView(views[0],[-13,-17,toe+9],[20,0,toe],objects.concat(rover));
   drawView(views[1],[x+direction*.4,0,z+1.05],[x+direction*6,0,z+.25],objects);
