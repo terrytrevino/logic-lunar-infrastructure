@@ -37,6 +37,18 @@
   <input type="range" id="replay-position" min="0" max="1" step=".01" value="0" disabled>
   <output id="replay-event"></output>
 </div>
+<details id="drive-mode">
+  <summary>Drive the rover around rocks</summary>
+  <p>Use the buttons or arrow keys with focus on a driving control. Drive into a movable rock to push it. Large rocks block the rover. Obstacles are placed for this exercise. Contact uses a simplified geometric model.</p>
+  <div class="replay-controls" id="drive-controls">
+    <button type="button" data-drive="left">Turn left</button>
+    <button type="button" data-drive="forward">Forward</button>
+    <button type="button" data-drive="right">Turn right</button>
+    <button type="button" data-drive="back">Reverse</button>
+    <button type="button" data-drive="reset">Reset course</button>
+  </div>
+  <p id="drive-status" role="status"></p>
+</details>
 <h2>Mission sequence</h2>
 <p id="trace-note">Events from the sortie model, in run order.</p>
 <ol id="trace"></ol>
@@ -135,6 +147,83 @@ const deck=toe+rampRise;
 const ramp={points:[[-rampRun,-1.25,deck],[0,-1.25,toe],[0,1.25,toe],[-rampRun,1.25,deck]],color:'#b1b2b3'};
 const lander=box(-12,-2.5,toe,12-rampRun,5,rampRise,'#c9c8c3');
 
+const driveMode = document.getElementById('drive-mode');
+const driveStatus = document.getElementById('drive-status');
+const course = [
+  {x:4,y:0,r:.55,movable:true},
+  {x:7,y:2,r:1.1,movable:false},
+  {x:9,y:-2,r:.7,movable:true},
+  {x:12,y:.5,r:1.25,movable:false},
+  {x:15,y:3,r:.8,movable:true}
+];
+let rocks, driver;
+function resetCourse() {
+  rocks=course.map(rock=>({...rock}));
+  driver={x:1,y:0,heading:0};
+  drawCourse('Course reset');
+}
+const gap=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function rockFaces({x,y,r,movable}) {
+  const base=Array.from({length:7},(_,i)=>{
+    const angle=i*2*Math.PI/7;
+    const px=x+Math.cos(angle)*r, py=y+Math.sin(angle)*r;
+    return [px,py,ground(px,py)];
+  });
+  const peak=[x+r*.15,y-r*.12,ground(x,y)+r*(movable?1.1:1.35)];
+  const colors=movable?['#a58764','#c0a786','#806b5c']:['#60636a','#878991','#505359'];
+  return base.map((point,i)=>({points:[point,base[(i+1)%base.length],peak],color:colors[i%3]}));
+}
+function drawCourse(message) {
+  const {x,y,heading}=driver;
+  const z=ground(x,y), dx=Math.cos(heading), dy=Math.sin(heading);
+  const rover=box(-.75,-.75,0,1.5,1.5,1,'#d9a650').map(({points,color})=>({
+    points:points.map(([px,py,pz])=>[x+px*dx-py*dy,y+px*dy+py*dx,z+pz]),color
+  }));
+  const objects=[...terrain,ramp,...lander,...rocks.flatMap(rockFaces)];
+  drawView(views[0],[-4,-15,toe+9],[9,0,toe],objects.concat(rover));
+  drawView(views[1],[x+dx*.45,y+dy*.45,z+1.05],[x+dx*6,y+dy*6,z+.25],objects);
+  driveStatus.textContent=message+' · '+x.toFixed(1)+' m along course, '+y.toFixed(1)+' m lateral';
+  replayEvent.textContent='Manual driving';
+}
+
+function drive(command) {
+  if(command==='reset') { resetCourse(); return; }
+  if(command==='left' || command==='right') {
+    driver.heading+=(command==='left'?1:-1)*Math.PI/12;
+    drawCourse('Turned '+command);
+    return;
+  }
+  const distance=command==='forward'?.4:-.4;
+  const dx=Math.cos(driver.heading)*distance, dy=Math.sin(driver.heading)*distance;
+  const next={x:driver.x+dx,y:driver.y+dy,heading:driver.heading};
+  if(next.x<.75 || next.x>23 || Math.abs(next.y)>9) { drawCourse('Course boundary'); return; }
+  const contacts=rocks.filter(rock=>gap(next,rock)<rock.r+.9 && gap(next,rock)<gap(driver,rock));
+  const rock=contacts[0];
+  if(contacts.length>1 || (rock && !rock.movable)) { drawCourse('Blocked by rock'); return; }
+  if(rock) {
+    const pushed={x:rock.x+dx,y:rock.y+dy};
+    if(pushed.x-rock.r<0 || pushed.x+rock.r>24 || Math.abs(pushed.y)+rock.r>10 ||
+        rocks.some(other=>other!==rock && gap(pushed,other)<rock.r+other.r)) {
+      drawCourse('Rock cannot move farther');
+      return;
+    }
+    Object.assign(rock,pushed);
+  }
+  driver=next;
+  drawCourse(rock?'Pushed rock':command==='forward'?'Moved forward':'Reversed');
+}
+driveMode.ontoggle=()=>{
+  if(driveMode.open) { stopReplay(); resetCourse(); }
+  else drawReplay(Number(position.value));
+};
+const controls=document.getElementById('drive-controls');
+controls.onclick=event=>{if(event.target.dataset.drive) drive(event.target.dataset.drive);};
+controls.onkeydown=event=>{
+  const command={ArrowUp:'forward',ArrowDown:'back',ArrowLeft:'left',ArrowRight:'right'}[event.key];
+  if(command) {event.preventDefault(); drive(command);}
+};
+
 function drawReplay(value) {
   if(!replayRows.length) {
     views.forEach(ctx=>ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height));
@@ -172,15 +261,17 @@ function tick(now) {
   else animation=requestAnimationFrame(tick);
 }
 toggle.onclick=()=>{
+  driveMode.open=false;
   if(animation!==null) { stopReplay(); return; }
   if(Number(position.value)>=Number(position.max)) position.value=0;
   playStart=performance.now()-Number(position.value)*1000;
   toggle.textContent='Pause';
   animation=requestAnimationFrame(tick);
 };
-position.oninput=()=>{stopReplay();drawReplay(Number(position.value));};
+position.oninput=()=>{driveMode.open=false;stopReplay();drawReplay(Number(position.value));};
 
 function renderTrace(rows) {
+  driveMode.open=false;
   trace.replaceChildren();
   const events = Array.isArray(rows) ? rows : [];
   replayRows = [];
