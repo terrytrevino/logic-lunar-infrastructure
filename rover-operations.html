@@ -11,6 +11,8 @@
 <p><a href="index.html">Lunar Infrastructure</a></p>
 <h1>Rover Operations</h1>
 <p>Open a rover-results.json file from a HESTIA GitHub Actions run. The file stays in your browser.</p>
+<p><a href="https://github.com/terrytrevino/hestia-rover/actions/runs/45090529383"><u>Open the verified GitHub Actions test run</u></a> (HESTIA repo access required).</p>
+<p><button type="button" id="sample">Show sample result</button></p>
 <label>Rover results <input type="file" accept=".json,application/json"></label>
 <p id="status" role="status"></p>
 <dl id="metrics"></dl>
@@ -19,12 +21,8 @@
 const input = document.querySelector('input');
 const metrics = document.querySelector('#metrics');
 const status = document.querySelector('#status');
-input.addEventListener('change', async () => {
-  const file = input.files[0];
-  if (!file) return;
+function render(result, label) {
   metrics.replaceChildren();
-  try {
-    const result = JSON.parse(await file.text());
     const values = [result.completed_distance_m, result.planned_distance_m,
       result.remaining_battery_wh, result.charging_duration_h];
     if (result.schema_version !== 1 || result.evidence !== 'illustrative_simulation' ||
@@ -43,11 +41,32 @@ input.addEventListener('change', async () => {
       detail.textContent = value;
       metrics.append(term, detail);
     }
-    status.textContent = 'Illustrative simulation';
+  status.textContent = label;
+}
+function showSample() {
+  input.value = '';
+  render({
+    schema_version: 1,
+    evidence: 'illustrative_simulation',
+    source_revision: 'a326f3993a8480e26b85c73c2608b407b2330111',
+    completed_distance_m: 50,
+    planned_distance_m: 100,
+    remaining_battery_wh: 240,
+    charging_duration_h: 4.41
+  }, 'Sample result reproduced from the test baseline. Illustrative simulation.');
+}
+document.querySelector('#sample').addEventListener('click', showSample);
+input.addEventListener('change', async () => {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    render(JSON.parse(await file.text()), 'Imported result. Illustrative simulation.');
   } catch {
+    metrics.replaceChildren();
     status.textContent = 'Choose a valid HESTIA rover-results.json file.';
   }
 });
+showSample();
 </script>
 </body>
 </html>
