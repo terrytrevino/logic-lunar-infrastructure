@@ -39,6 +39,7 @@
 </div>
 <details id="drive-mode">
   <summary>Drive the rover around rocks</summary>
+  <p>The rocks appear in the two camera views above when you open this mode.</p>
   <p>Use the buttons or arrow keys with focus on a driving control. Lower the front blade to push small rocks. Use the arm to pick up the smallest rock, then turn and place it off the route. Use the rear tamper to mark a compaction pass. Large rocks block the rover. Obstacles are placed for this exercise. Contact uses a simplified geometric model.</p>
   <div class="replay-controls" id="drive-controls">
     <button type="button" data-drive="left">Turn left</button>
@@ -112,7 +113,7 @@ function box(x,y,z,length,width,height,color) {
     [d,a,top[0],top[3]],top].map(points=>({points,color}));
 }
 
-function drawView(ctx, eye, target, objects) {
+function drawView(ctx, eye, target, objects, courseView=false) {
   const forward=unit(minus(target,eye));
   const right=unit(cross(forward,[0,0,1]));
   const up=cross(right,forward);
@@ -120,7 +121,7 @@ function drawView(ctx, eye, target, objects) {
   ctx.fillStyle='#10151c';
   ctx.fillRect(0,0,w,h);
   const polygons=[];
-  for(const {points,color} of objects) {
+  for(const {points,color,layer=0} of objects) {
     const camera=points.map(point=>{
       const relative=minus(point,eye);
       return [dot(relative,right),dot(relative,up),dot(relative,forward)];
@@ -134,9 +135,9 @@ function drawView(ctx, eye, target, objects) {
         clipped.push([mix(a[0],b[0],t),mix(a[1],b[1],t),.15]);
       }
     }
-    if(clipped.length>=3) polygons.push({color,clipped,depth:clipped.reduce((sum,p)=>sum+p[2],0)/clipped.length});
+    if(clipped.length>=3) polygons.push({color,clipped,layer,depth:clipped.reduce((sum,p)=>sum+p[2],0)/clipped.length});
   }
-  polygons.sort((a,b)=>b.depth-a.depth);
+  polygons.sort((a,b)=>(courseView?a.layer-b.layer:0)||b.depth-a.depth);
   for(const {color,clipped} of polygons) {
     ctx.beginPath();
     clipped.forEach(([x,y,z],i)=>ctx[i?'lineTo':'moveTo'](w/2+focal*x/z,h/2-focal*y/z));
@@ -226,9 +227,10 @@ function drawCourse(message) {
     [x+.3,y+.35,ground(x+.3,y+.35)+.03],[x-.3,y+.35,ground(x-.3,y+.35)+.03]
   ]}));
   const load=carried?box(x+dx*1.1-.2,y+dy*1.1-.2,z+1.12,.4,.4,.35,'#a58764'):[];
-  const objects=[...terrain,ramp,...lander,...marks,...rocks.flatMap(rockFaces),...load];
-  drawView(views[0],[-4,-15,toe+9],[9,0,toe],objects.concat(rover));
-  drawView(views[1],[x+dx*.45,y+dy*.45,z+1.05],[x+dx*6,y+dy*6,z+.25],objects);
+  const courseObjects=[ramp,...lander,...marks,...rocks.flatMap(rockFaces),...load];
+  const objects=[...terrain,...courseObjects.map(face=>({...face,layer:1}))];
+  drawView(views[0],[-4,-15,toe+9],[9,0,toe],objects.concat(rover.map(face=>({...face,layer:1}))),true);
+  drawView(views[1],[x+dx*.45,y+dy*.45,z+1.05],[x+dx*6,y+dy*6,z+.25],objects,true);
   driveStatus.textContent=message+' · '+x.toFixed(1)+' m along course, '+y.toFixed(1)+' m lateral';
   replayEvent.textContent='Manual driving';
 }
